@@ -37,7 +37,7 @@ import { TerminalAndTaskStatePromptElement } from '../base/terminalAndTaskState'
 import { ChatVariables } from '../panel/chatVariables';
 import { EXISTING_CODE_MARKER } from '../panel/codeBlockFormattingRules';
 import { CustomInstructions } from '../panel/customInstructions';
-import { NotebookFormat } from '../panel/notebookEditCodePrompt';
+import { NotebookFormat, NotebookReminderInstructions } from '../panel/notebookEditCodePrompt';
 import { NotebookSummaryChange } from '../panel/notebookSummaryChangePrompt';
 import { UserPreferences } from '../panel/preferences';
 import { TerminalCwdPrompt } from '../panel/terminalPrompt';
@@ -286,6 +286,7 @@ export class AgentUserMessage extends PromptElement<AgentUserMessageProps> {
 						{/* Critical reminders that are effective when repeated right next to the user message */}
 						{getKeepGoingReminder(this.props.endpoint.family)}
 						{getEditingReminder(hasEditFileTool, hasReplaceStringTool)}
+						<NotebookReminderInstructions chatVariables={this.props.chatVariables} query={this.props.request} />
 					</Tag>
 					{query && <Tag name='userRequest' priority={900} flexGrow={7}>{query + attachmentHint}</Tag>}
 					{this.props.enableCacheBreakpoints && <cacheBreakpoint type={CacheType} />}
@@ -548,7 +549,7 @@ class AgentTasksInstructions extends PromptElement {
 		}
 
 		return <>
-			The following tasks can be executed using the {ToolName.RunTask} tool:<br />
+			The following tasks can be executed using the {ToolName.RunTask} tool and their output can be reviewed using the {ToolName.GetTaskOutput} tool:<br />
 			{taskGroups.map(([folder, tasks]) =>
 				<Tag name='workspaceFolder' attrs={{ path: this._promptPathRepresentationService.getFilePath(folder) }}>
 					{tasks.map((t, i) => <Tag name='task' attrs={{ id: `${t.type}: ${t.label || i}` }}>{this.makeTaskPresentation(t)}</Tag>)}
@@ -589,13 +590,11 @@ class AgentTasksInstructions extends PromptElement {
 export function getEditingReminder(hasEditFileTool: boolean, hasReplaceStringTool: boolean) {
 	const lines = [];
 	if (hasEditFileTool) {
-		lines.push(<>When using the {ToolName.EditFile} tool, avoid repeating existing code, instead use a line comment with \`{EXISTING_CODE_MARKER}\` to represent regions of unchanged code.</>);
+		lines.push(<>When using the {ToolName.EditFile} tool, avoid repeating existing code, instead use a line comment with \`{EXISTING_CODE_MARKER}\` to represent regions of unchanged code.<br /></>);
+
 	}
 	if (hasReplaceStringTool) {
-		if (hasEditFileTool) {
-			lines.push(<br />);
-		}
-		lines.push(<>When using the {ToolName.ReplaceString} tool, include 3-5 lines of unchanged code before and after the string you want to replace, to make it unambiguous which part of the file should be edited.</>);
+		lines.push(<>When using the {ToolName.ReplaceString} tool, include 3-5 lines of unchanged code before and after the string you want to replace, to make it unambiguous which part of the file should be edited.<br /></>);
 	}
 
 	return lines;
