@@ -14,7 +14,7 @@ import { LanguageContextEntry, LanguageContextResponse } from '../../../platform
 import * as xtabPromptOptions from '../../../platform/inlineEdits/common/dataTypes/xtabPromptOptions';
 import { InlineEditRequestLogContext } from '../../../platform/inlineEdits/common/inlineEditLogContext';
 import { ResponseProcessor } from '../../../platform/inlineEdits/common/responseProcessor';
-import { DocumentShorteningStrategy, NoNextEditReason, PushEdit, ShowNextEditPreference, StatelessNextEditDocument, StatelessNextEditRequest, StatelessNextEditResult, StatelessNextEditTelemetryBuilder } from '../../../platform/inlineEdits/common/statelessNextEditProvider';
+import { NoNextEditReason, PushEdit, ShowNextEditPreference, StatelessNextEditDocument, StatelessNextEditRequest, StatelessNextEditResult, StatelessNextEditTelemetryBuilder } from '../../../platform/inlineEdits/common/statelessNextEditProvider';
 import { ChainedStatelessNextEditProvider, IgnoreEditsAtClippingBorderAspect, IgnoreTriviaWhitespaceChangesAspect } from '../../../platform/inlineEdits/common/statelessNextEditProviders';
 import { ILanguageDiagnosticsService } from '../../../platform/languages/common/languageDiagnosticsService';
 import { ILanguageContextService, KnownSources, RequestContext } from '../../../platform/languageServer/common/languageContextService';
@@ -72,7 +72,6 @@ export class XtabProvider extends ChainedStatelessNextEditProvider {
 
 	public static readonly ID = XTabProviderId;
 
-	public readonly documentShorteningStrategy = DocumentShorteningStrategy.NoShortening;
 	public readonly dependsOnSelection = true;
 	public readonly showNextEditPreference = ShowNextEditPreference.Always;
 
@@ -161,6 +160,7 @@ export class XtabProvider extends ChainedStatelessNextEditProvider {
 
 		const endpoint = this.getEndpoint();
 		logContext.setEndpointInfo(typeof endpoint.urlOrRequestMetadata === 'string' ? endpoint.urlOrRequestMetadata : endpoint.urlOrRequestMetadata.type, endpoint.model);
+		telemetryBuilder.setModelName(endpoint.model);
 
 		const computeTokens = (s: string) => Math.floor(s.length / 4);
 
